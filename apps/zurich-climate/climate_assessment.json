@@ -1,0 +1,99 @@
+{
+  "metadata": {},
+  "global_stats": {
+    "total_buildings": 55970,
+    "fossil_heated": 31650,
+    "fossil_pct": 56.5,
+    "high_rsi_buildings": 13321,
+    "high_rsi_pct": 23.8,
+    "mean_rsi": 0.52,
+    "mean_age_score": 0.519,
+    "mean_lst_summer": 35.6,
+    "mean_heat_signal": 7.94,
+    "mean_ndvi": 0.258,
+    "mean_green_score": 0.437,
+    "mean_green_deficit": 0.563,
+    "mean_pop_density": 55.9,
+    "mean_adoption_readiness": 0.419,
+    "ndvi_lst_correlation": -0.531,
+    "mean_climate_urgency": 0.519,
+    "total_retrofit_cost_bn": 9.73,
+    "avg_retrofit_cost_k": 205.0,
+    "mean_vulnerability": 0.398,
+    "mean_uhimax_k": 7.94,
+    "rsi_weight_mode": "data-driven",
+    "heating_unknown_count": 0,
+    "heating_known_pct": 100.0,
+    "rsi_quartiles": {
+      "q1": 0.267,
+      "q2": 0.668,
+      "q3": 0.748
+    },
+    "cost_mindeststandard_median_k": 46.0,
+    "cost_mittelstandard_median_k": 130.0,
+    "cost_minergie_median_k": 286.0
+  },
+  "rsi_histogram": [
+    {
+      "bin": "0.0-0.1",
+      "count": 2661
+    },
+    {
+      "bin": "0.1-0.2",
+      "count": 4892
+    },
+    {
+      "bin": "0.2-0.3",
+      "count": 7953
+    },
+    {
+      "bin": "0.3-0.4",
+      "count": 7791
+    },
+    {
+      "bin": "0.4-0.5",
+      "count": 679
+    },
+    {
+      "bin": "0.5-0.6",
+      "count": 992
+    },
+    {
+      "bin": "0.6-0.7",
+      "count": 5228
+    },
+    {
+      "bin": "0.7-0.8",
+      "count": 25432
+    },
+    {
+      "bin": "0.8-0.9",
+      "count": 342
+    },
+    {
+      "bin": "0.9-1.0",
+      "count": 0
+    }
+  ],
+  "heating_breakdown": {
+    "Gas": 21596,
+    "Heiz\u00f6l": 10054,
+    "Luft": 1290,
+    "Elektrizit\u00e4t": 132,
+    "Erdw\u00e4rmesonde": 4818,
+    "Fernw\u00e4rme": 8085,
+    "Holz (Generisch)": 452,
+    "Andere Energietr\u00e4ger": 560,
+    "Unbestimmt": 4,
+    "Wasser (Grundwasser, Oberfl\u00e4chenwasser, Abwasser)": 82,
+    "Holzpellets": 78,
+    "Fernw\u00e4rme (Niedertemperatur)": 200,
+    "St\u00fcckholz": 40,
+    "Kein Energietr\u00e4ger": 8117,
+    "Seewasser": 25,
+    "Abw\u00e4rme (innerhalb des Geb\u00e4udes)": 3,
+    "Holzschnitzel (Generisch)": 3,
+    "Sonne": 3,
+    "Keine Angabe": 428
+  }
+}

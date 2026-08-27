@@ -1,0 +1,94 @@
+[
+  {
+    "title": "greenR \u2014 Urban Greenness Quantification Framework",
+    "category": "Urban Resilience & Nature-Based Solutions",
+    "description": "Open-source R package and interactive Shiny web application for fine-scale quantification, spatial analysis, and visualization of street-level urban greenness and park accessibility using OpenStreetMap data. Awarded the Prix Carto 2025 by the Swiss Society of Cartography.",
+    "tags": [
+      "R Package",
+      "Shiny",
+      "GIS",
+      "OpenStreetMap",
+      "Urban Greenness",
+      "CRAN"
+    ],
+    "github": "https://github.com/sachit27/greenR",
+    "award": "Prix Carto 2025 \u2014 Swiss Society of Cartography"
+  },
+  {
+    "title": "Z\u00fcrich Climate Solutions \u2014 Spatial Feasibility Assessment",
+    "category": "Urban Resilience & Climate Decision Support",
+    "description": "Interactive 3D spatial decision-support platform for building-level climate adaptation in Z\u00fcrich. Fuses eight open data layers across ~54,000 buildings to evaluate retrofit suitability (RSI), heat hazard intervention priorities, and adoption readiness.",
+    "tags": [
+      "Spatial Analytics",
+      "deck.gl",
+      "MapLibre GL",
+      "Urban Heat",
+      "Building Retrofit",
+      "Decision Support"
+    ],
+    "github": "https://github.com/sachit27/zurich-climate-scaling",
+    "demo": "./apps/zurich-climate/"
+  },
+  {
+    "title": "Co-Creation Provenance Lab",
+    "category": "AI for Environment & Citizen Governance",
+    "description": "An open-source platform tracing the provenance of citizen ideas and inputs in AI-moderated public consultations, ensuring transparency, voice preservation, and representational equity.",
+    "tags": [
+      "Python",
+      "LLMs",
+      "AI Accountability",
+      "Citizen Feedback",
+      "Moderation"
+    ],
+    "github": "https://github.com/sachit27/co-creation-provenance-lab"
+  },
+  {
+    "title": "VAYU \u2014 Sensor Analytics & Statistical Processing Software",
+    "category": "Environmental Sensing & Analytics",
+    "description": "Open-source GUI software (Python/PyQt) for data processing, spatial-temporal visualization, and machine learning on crowd-sourced sensor data (AirBox, PurpleAir). Supports automated cleaning, Kalman imputation, and predictive modeling.",
+    "tags": [
+      "Python",
+      "PyQt",
+      "Air Quality",
+      "Sensor Analytics",
+      "Time-Series"
+    ],
+    "github": "https://github.com/sachit27/VAYU"
+  },
+  {
+    "title": "Trust-Based Dynamic Sensor Calibration",
+    "category": "Environmental Sensing & Analytics",
+    "description": "A dynamic consensus calibration mechanism for distributed low-cost PM2.5 sensor networks that eliminates the need for continuous physical co-location with reference monitors. Achieves up to 68% error reduction through multi-criteria trust modeling.",
+    "tags": [
+      "Python",
+      "Machine Learning",
+      "Sensor Calibration",
+      "PM2.5"
+    ],
+    "github": "https://github.com/sachit27/Trust-Based-Calibration-for-Low-Cost-PM2.5-Sensors"
+  },
+  {
+    "title": "CAR: Clean Air Routing Algorithm",
+    "category": "Urban Resilience & Spatial Analytics",
+    "description": "An algorithm and application framework that optimizes urban path navigation to minimize pedestrian PM2.5 exposure, integrating real-time sensor data with shortest-path algorithms.",
+    "tags": [
+      "Python",
+      "Route Optimization",
+      "Clean Air",
+      "GIS"
+    ],
+    "github": "https://github.com/sachit27/CAR-Clean-Air-Routing-Algorithm"
+  },
+  {
+    "title": "Urban Green Equity Analysis",
+    "category": "Urban Resilience & Nature-Based Solutions",
+    "description": "Moving beyond mean greenness metrics to reveal socio-spatial inequities in urban greenery distribution at the residential block level across Latin American cities.",
+    "tags": [
+      "GIS",
+      "Spatial Analysis",
+      "Environmental Justice",
+      "Python"
+    ],
+    "github": "https://github.com/sachit27/urban-green-equity-analysis"
+  }
+]

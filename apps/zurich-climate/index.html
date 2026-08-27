@@ -1,0 +1,1723 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <title>greenR Zurich PoC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/deck.gl@8.9.0/dist.min.js"></script>
+  <script src="https://unpkg.com/maplibre-gl@3.3.1/dist/maplibre-gl.js"></script>
+  <link href="https://unpkg.com/maplibre-gl@3.3.1/dist/maplibre-gl.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --muted: #8b949e;
+      --accent: #1A936F;
+      --fossil: #e74c3c;
+      --clean: #2ecc71;
+      --warn: #f39c12;
+      --nav-h: 52px;
+    }
+
+    .light {
+      --bg: #f6f8fa;
+      --surface: #ffffff;
+      --border: #d0d7de;
+      --text: #24292f;
+      --muted: #6e7781;
+    }
+
+    html,
+    body {
+      height: 100%;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    /* ── Navbar ── */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: var(--nav-h);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 12px;
+      z-index: 200;
+    }
+
+    .nav-brand {
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: 1px;
+      color: var(--text);
+    }
+
+    .nav-brand span {
+      color: var(--accent);
+      margin-right: 4px;
+    }
+
+    .nav-badge {
+      background: var(--accent);
+      color: #fff;
+      font-size: .7rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      letter-spacing: .5px;
+    }
+
+    .nav-sep {
+      flex: 1;
+    }
+
+    .nav-btns {
+      display: flex;
+      gap: 6px;
+    }
+
+    .nav-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: .75rem;
+      cursor: pointer;
+      transition: all .2s;
+      font-family: inherit;
+    }
+
+    .nav-btn:hover,
+    .nav-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .nav-btn.theme-btn {
+      width: 32px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+
+    /* ── Map ── */
+    #map {
+      position: fixed;
+      top: var(--nav-h);
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+
+    /* ── Left panel: stats ── */
+    .stats-panel {
+      position: fixed;
+      top: calc(var(--nav-h) + 12px);
+      left: 12px;
+      width: 270px;
+      max-width: 30vw;
+      max-height: calc(100vh - var(--nav-h) - 80px);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 100;
+      overflow-y: auto;
+      pointer-events: auto;
+    }
+
+    .stats-panel::-webkit-scrollbar { width: 4px; }
+    .stats-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      pointer-events: auto;
+    }
+
+    /* ── Right panel: controls ── */
+    .controls-panel {
+      position: fixed;
+      top: calc(var(--nav-h) + 12px);
+      right: 12px;
+      width: 240px;
+      max-width: 25vw;
+      max-height: calc(100vh - var(--nav-h) - 80px);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 100;
+      overflow-y: auto;
+      pointer-events: auto;
+    }
+
+    .kpi-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .kpi {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      pointer-events: auto;
+    }
+
+    .kpi-val {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .kpi-val.fossil {
+      color: var(--fossil);
+    }
+
+    .kpi-val.clean {
+      color: var(--accent);
+    }
+
+    .kpi-val.warm {
+      color: var(--warn);
+    }
+
+    .kpi-label {
+      font-size: .7rem;
+      color: var(--muted);
+      margin-top: 3px;
+      line-height: 1.3;
+    }
+
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      pointer-events: auto;
+    }
+
+    .chart-title {
+      font-size: .75rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .chart-sub {
+      font-size: .65rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .bar-list {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .bar-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: .68rem;
+    }
+
+    .bar-label {
+      width: 90px;
+      color: var(--muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .bar-track {
+      flex: 1;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 3px;
+    }
+
+    .bar-fill.fossil-fill {
+      background: var(--fossil);
+    }
+
+    .bar-fill.clean-fill {
+      background: var(--accent);
+    }
+
+    .bar-fill.neutral-fill {
+      background: #58a6ff;
+    }
+
+    .bar-num {
+      color: var(--muted);
+      width: 40px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* ── Right panel: controls ── */
+    .controls-panel {
+      position: fixed;
+      top: calc(var(--nav-h) + 12px);
+      right: 12px;
+      width: 240px;
+      max-width: 25vw;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 100;
+      overflow-y: auto;
+      max-height: calc(100vh - var(--nav-h) - 80px);
+    }
+
+    .controls-panel::-webkit-scrollbar { width: 4px; }
+    .controls-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .ctrl-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      max-height: 350px;
+      overflow-y: auto;
+    }
+
+    .ctrl-card::-webkit-scrollbar { width: 4px; }
+    .ctrl-card::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .ctrl-title {
+      font-size: .75rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .mode-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+    }
+
+    .mode-btn {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 4px 3px;
+      border-radius: 6px;
+      font-size: .62rem;
+      cursor: pointer;
+      transition: all .15s;
+      text-align: center;
+      font-family: inherit;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .mode-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .slider-row {
+      margin-bottom: 8px;
+    }
+
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: .68rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .slider-label span {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    input[type=range] {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    /* ── Legend ── */
+    .legend {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: .68rem;
+      z-index: 250;
+      white-space: nowrap;
+      max-width: 85vw;
+      width: auto;
+      overflow-x: auto;
+      pointer-events: auto;
+    }
+
+    .legend::-webkit-scrollbar { height: 3px; }
+    .legend::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .legend-title {
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .legend-gradient {
+      width: 140px;
+      min-width: 140px;
+      height: 8px;
+      border-radius: 4px;
+    }
+
+    .legend-ends {
+      display: flex;
+      justify-content: space-between;
+      width: 140px;
+      min-width: 140px;
+      color: var(--muted);
+      font-size: .65rem;
+    }
+
+    /* ── Tooltip ── */
+    #tooltip {
+      position: fixed;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: .75rem;
+      min-width: 200px;
+      pointer-events: none;
+      z-index: 300;
+      display: none;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .4);
+    }
+
+    .tt-title {
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+    }
+
+    .tt-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+
+    .tt-row b {
+      color: var(--text);
+    }
+
+    .tt-rsi {
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px solid var(--border);
+    }
+
+    .tt-bar {
+      height: 6px;
+      border-radius: 3px;
+      margin-top: 4px;
+      background: linear-gradient(to right, #ffffcc, #feb24c, #f03b20);
+    }
+
+    /* ── Methodology Panel ── */
+    .meth-panel {
+      position: fixed;
+      top: var(--nav-h);
+      right: 0;
+      width: 360px;
+      bottom: 0;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      overflow-y: auto;
+      z-index: 150;
+      transform: translateX(100%);
+      transition: transform .3s ease;
+      padding: 20px;
+    }
+
+    .meth-panel.open {
+      transform: translateX(0);
+    }
+
+    .meth-h {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .meth-sub {
+      font-size: .75rem;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .meth-section {
+      margin-bottom: 16px;
+    }
+
+    .meth-section-title {
+      font-size: .8rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    .formula {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-family: monospace;
+      font-size: .75rem;
+      color: var(--text);
+      margin: 6px 0;
+    }
+
+    .ds-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+      align-items: flex-start;
+    }
+
+    .ds-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .9rem;
+      flex-shrink: 0;
+    }
+
+    .ds-text {
+      flex: 1;
+    }
+
+    .ds-name {
+      font-size: .75rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .ds-detail {
+      font-size: .68rem;
+      color: var(--muted);
+    }
+
+    .limit-tag {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: .68rem;
+      color: var(--muted);
+      margin: 3px 0;
+      display: block;
+    }
+
+    .close-btn {
+      float: right;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    /* ── Data flow diagram ── */
+    .flow {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .flow-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .flow-source {
+      background: #21262d;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: .68rem;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .flow-arrow {
+      color: var(--muted);
+      font-size: .8rem;
+    }
+
+    .flow-output {
+      background: var(--accent);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: .68rem;
+      color: #fff;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-badge">greenR PoC</div>
+    <div class="nav-sep"></div>
+    <div class="nav-btns">
+      <button class="nav-btn active" onclick="setMode('rsi')">RSI Score</button>
+      <button class="nav-btn" onclick="setMode('urgency')">Priority</button>
+      <button class="nav-btn" onclick="setMode('vulnerability')">Vulnerability</button>
+      <button class="nav-btn" onclick="setMode('heating')">Heating</button>
+      <button class="nav-btn" onclick="setMode('uhimax')">UHI Air Temp</button>
+      <button class="nav-btn" onclick="setMode('ndvi')">NDVI</button>
+      <button class="nav-btn" onclick="setMode('trees')">Trees</button>
+      <button class="nav-btn" onclick="setMode('adoption')">Adoption</button>
+      <button class="nav-btn" onclick="setMode('hotspots')" id="btn-hotspots-nav" style="border-color:#ef4444;color:#ef4444">🔥 Hotspots</button>
+      <button class="nav-btn" id="methBtn" onclick="toggleMethodology()">📖 Methodology</button>
+      <button class="nav-btn theme-btn" onclick="toggleTheme()" title="Toggle light/dark">🌓</button>
+    </div>
+  </nav>
+
+  <!-- Map -->
+  <div id="map"></div>
+
+  <!-- Tooltip -->
+  <div id="tooltip">
+    <div class="tt-title" id="tt-title">Building Info</div>
+    <div id="tt-body"></div>
+  </div>
+
+  <!-- Stats panel (left) -->
+  <div class="stats-panel" id="statsPanel">
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-val" id="kpi-total">—</div>
+        <div class="kpi-label">Buildings<br>Assessed</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-val fossil" id="kpi-fossil">—</div>
+        <div class="kpi-label">Fossil-Fuel<br>Heated (%)</div>
+        <div style="font-size:.55rem;color:var(--muted);margin-top:2px">order-of-magnitude BFE benchmarks</div>
+      </div>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-val warm" id="kpi-lst">—</div>
+        <div class="kpi-label">Mean UHI Air<br>Temp (ΔK)</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-val clean" id="kpi-green">—</div>
+        <div class="kpi-label">Mean Green<br>Score / NDVI</div>
+      </div>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-val" id="kpi-pop" style="color:#a78bfa">—</div>
+        <div class="kpi-label">Mean Pop<br>Density</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-val" id="kpi-adopt" style="color:#f59e0b">—</div>
+        <div class="kpi-label">Adoption<br>Readiness</div>
+      </div>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-val" id="kpi-vuln" style="color:#ef4444">—</div>
+        <div class="kpi-label">Mean SoVI<br>Vulnerability</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-val" id="kpi-clean" style="color:#10b981">—</div>
+        <div class="kpi-label">Already<br>Clean Energy</div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">BFE Renovation Cost Scenarios <span style="font-weight:400;color:var(--muted);font-size:.65rem">(CHF K per building)</span></div>
+      <div id="costRanges" style="display:flex;flex-direction:column;gap:6px"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Heating Energy Source</div>
+      <div class="bar-list" id="heatingBars"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">RSI Distribution <span
+          style="font-weight:400;color:var(--muted);font-size:.65rem">(responds to weight sliders)</span></div>
+      <svg id="rsiHistogram" width="242" height="80" style="overflow:visible"></svg>
+      <div class="chart-sub">How many buildings at each priority level? (0 = already clean energy, 1 = highest retrofit
+        priority)</div>
+    </div>
+  </div>
+
+  <!-- Controls (right) -->
+  <div class="controls-panel">
+    <div class="ctrl-card">
+      <div class="ctrl-title">View Mode</div>
+      <div class="mode-grid">
+        <button class="mode-btn active" onclick="setMode('rsi')" id="btn-rsi">RSI Score</button>
+        <button class="mode-btn" onclick="setMode('urgency')" id="btn-urgency">Priority</button>
+        <button class="mode-btn" onclick="setMode('vulnerability')" id="btn-vulnerability">Vulnerability</button>
+        <button class="mode-btn" onclick="setMode('heating')" id="btn-heating">Heating</button>
+        <button class="mode-btn" onclick="setMode('uhimax')" id="btn-uhimax">UHI Air Temp</button>
+        <button class="mode-btn" onclick="setMode('ndvi')" id="btn-ndvi">NDVI</button>
+        <button class="mode-btn" onclick="setMode('trees')" id="btn-trees">Trees</button>
+        <button class="mode-btn" onclick="setMode('adoption')" id="btn-adoption">Adoption</button>
+        <button class="mode-btn" onclick="setMode('hotspots')" id="btn-hotspots" style="border-color:#ef4444;color:#ef4444;font-weight:700">🔥 Hotspots</button>
+      </div>
+    </div>
+    <div class="ctrl-card" id="weightsCard">
+      <div class="ctrl-title">Scenario Mode <span style="font-weight:400;color:var(--muted);font-size:.65rem">(user-configurable sliders — not the default scoring)</span></div>
+      <div class="chart-sub" style="margin-bottom:8px">Default RSI uses data-driven (PCA-derived) weights. Sliders below are for exploratory sensitivity analysis only.</div>
+      <div class="slider-row">
+        <div class="slider-label">Heating Transition <span id="wHVal">45%</span></div>
+        <input type="range" id="wH" min="0" max="100" value="45" oninput="updateWeights()">
+      </div>
+      <div class="slider-row">
+        <div class="slider-label">Building Age <span id="wAVal">25%</span></div>
+        <input type="range" id="wA" min="0" max="100" value="25" oninput="updateWeights()">
+      </div>
+      <div class="slider-row">
+        <div class="slider-label">Building Scale <span id="wSVal">15%</span></div>
+        <input type="range" id="wS" min="0" max="100" value="15" oninput="updateWeights()">
+      </div>
+      <div class="slider-row">
+        <div class="slider-label">Cost-Effectiveness <span id="wCVal">15%</span></div>
+        <input type="range" id="wC" min="0" max="100" value="15" oninput="updateWeights()">
+      </div>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend" id="legend">
+    <span class="legend-title" id="legendTitle">Retrofit Suitability Index (RSI)</span>
+    <div>
+      <div class="legend-gradient" id="legendGrad" style="background:linear-gradient(to right,#ffffcc,#feb24c,#f03b20)">
+      </div>
+      <div class="legend-ends"><span id="legendL">0 — Clean</span><span id="legendR">1 — High Priority</span></div>
+    </div>
+  </div>
+
+  <!-- Missing data banner -->
+  <div id="dataBanner" style="display:none;position:fixed;top:62px;left:50%;transform:translateX(-50%);background:#1a1a2e;border:1px solid #f39c12;border-radius:8px;padding:10px 20px;z-index:999;font-size:.75rem;color:#f39c12;max-width:80vw;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,.4)">
+    <span id="bannerText">⚠ Data not loaded. Run the pipeline and copy outputs to <code style="background:rgba(255,255,255,.1);padding:2px 6px;border-radius:3px;">dashboard/public/</code>.</span>
+  </div>
+
+  <!-- Methodology Slide-Out Panel -->
+  <div class="meth-panel" id="methPanel">
+    <button class="close-btn" onclick="toggleMethodology()">✕</button>
+    <div class="meth-h">Methodology</div>
+    <div class="meth-sub">Multi-Criteria Spatial Feasibility Assessment (MCSFA)</div>
+
+    <div class="meth-section">
+      <div class="meth-section-title">Why Not S-Curves?</div>
+      <p style="font-size:.73rem;color:var(--muted);line-height:1.5">Classical Bass diffusion models assume
+        <em>homogeneous populations</em> and aggregate markets. Here, every building has different physical constraints
+        — a 1884 gas-heated residential building has fundamentally different retrofit potential than a 2016
+        Fernwärme-connected commercial one. We need a <strong>bottom-up, building-resolved</strong> approach.
+      </p>
+    </div>
+
+    <div class="meth-section">
+      <div class="meth-section-title">Intervention Priority</div>
+      <div class="formula">Priority = ∛(HeatHazard × PopDensity × CoolingDeficit), factors floored at 0.05</div>
+      <p style="font-size:.7rem;color:var(--muted);margin-top:6px;line-height:1.5">Spatial priority composite via
+        geometric mean: all three factors must be present for high priority. To prevent extreme lows from zero-bounding
+        the index, factors are floored at 0.05. A hot empty warehouse or a cool
+        dense neighbourhood both score low. <strong>Heat Hazard</strong> uses UHI air temperature from the Theeuwes (2017)
+        equation with SVF and vegetation fraction, not Landsat LST. <strong>Socio-economic vulnerability</strong> (SoVI)
+        is assessed separately using BFS GEOSTAT demographics.</p>
+    </div>
+
+    <div class="meth-section">
+      <div class="meth-section-title">Adoption Readiness</div>
+      <div class="formula">Proxy: GWR building class → ownership structure (BFS statistics)</div>
+      <p style="font-size:.7rem;color:var(--muted);margin-top:6px;line-height:1.5">Single-family homes (~90%
+        owner-occupied in CH) score high — one decision-maker, no split incentive. Multi-family rental buildings
+        (~85% Mietwohnung) score low due to the tenant-landlord dilemma. <strong>Note:</strong> Public buildings
+        technically face split-incentives (budget cycles) but in Zürich often bypass standard ROI logic due to Net-Zero
+        2040 mandates. This highlights the gap between
+        <em>technical suitability</em> and <em>real-world adoption conditions</em>.
+      </p>
+    </div>
+
+    <div class="meth-section">
+      <div class="meth-section-title">True Green Cooling Score</div>
+      <div class="formula">GreenScore = 0.4·TreeVol_norm + 0.6·NDVI_norm</div>
+      <p style="font-size:.7rem;color:var(--muted);margin-top:6px;line-height:1.5">Solely relying on municipal tree
+        inventories creates a massive <strong>"public tree bias"</strong>. We fix this by combining 10m Sentinel-2
+        satellite NDVI (which captures
+        <em>all</em> vegetation) with Bauminventar tree data, weighted by <strong>tree height</strong> to proxy canopy
+        volume instead of raw counts. To address MAUP, satellite rasters use windowed median sampling (e.g. 50x50m)
+        rather than raw points. Our PoC validates this with a strong negative NDVI–UHI air temp
+        correlation of <strong>r = -0.531</strong> across Zürich.
+      </p>
+    </div>
+
+    <div class="meth-section">
+      <div class="meth-section-title">RSI Formula</div>
+      <div class="formula">RSI = w₁·HeatingScore + w₂·AgeScore<br> + w₃·ScaleScore + w₄·CostScore</div>
+      <p style="font-size:.7rem;color:var(--muted);margin-top:6px;line-height:1.5">Weights are scenario parameters. RSI is computed from building heating system, construction period, size, and estimated retrofit cost.</p>
+    </div>
+
+    <div class="meth-section">
+      <div class="meth-section-title">Cost Scenarios (BFE Gebäudeprogramm)</div>
+      <div class="formula">Mindeststandard: ×0.5 | Mittelstandard: ×1.0 | Minergie: ×2.5</div>
+      <p style="font-size:.7rem;color:var(--muted);margin-top:6px;line-height:1.5">All costs are <strong>order-of-magnitude estimates</strong> from BFE Gebäudeprogramm benchmarks by building class. Three scenarios reflect renovation depth: <strong>Mindeststandard</strong> (partial envelope + basic heating), <strong>Mittelstandard</strong> (full envelope + full heating), <strong>Minergie</strong> (full envelope + heat pump + PV). Actual costs depend on building geometry, soil conditions, grid capacity, and contractor availability.</p>
+    </div>
+
+    <div class="meth-section">
+      <div class="meth-section-title">Data Integration Pipeline</div>
+      <p style="font-size:.7rem;color:var(--muted);line-height:1.4;margin-bottom:10px">Eight authoritative data layers
+        are fused at building level (via EGID join) into two composite indices. Each building gets both a <em>technical
+          suitability</em> score and a <em>spatial priority</em> score.</p>
+      <svg id="pipelineDiagram" width="320" height="360" style="overflow:visible"></svg>
+    </div>
+
+    <div class="meth-section">
+      <div class="meth-section-title">🔥 Vulnerability Hotspots</div>
+      <div class="formula">Score = ∛(Heat × Pop × Vuln) × (1 − Green)</div>
+      <p style="font-size:.7rem;color:var(--muted);margin-top:6px;line-height:1.5">
+        Top 50 buildings ranked by combined climate vulnerability: <strong>high heat hazard</strong> (UHI air temp),
+        <strong>high population density</strong> (exposure), <strong>high socio-economic vulnerability</strong>
+        (SoVI), and <strong>low green access</strong> (cooling deficit). These locations need coordinated
+        intervention: green infrastructure, targeted retrofit programs, and social support for heat protection.
+        Each hotspot shows key stats on click.
+      </p>
+    </div>
+
+    <div class="meth-section">
+      <div class="meth-section-title">Known Limitations</div>
+      <span class="limit-tag">⚠ RSI weights are scenario parameters, not empirically calibrated — use sliders to explore
+        sensitivity</span>
+      <span class="limit-tag">⚠ Cost estimates use BFE Gebäudeprogramm renovation depth scenarios (Mindeststandard/Mittelstandard/Minergie), not fabricated multipliers</span>
+      <span class="limit-tag">⚠ UHI air temp uses Theeuwes (2017) SVF-based equation — not Landsat LST. Air temp ≈ LST−UHImax. Ground-station validated (MeteoSwiss)</span>
+      <span class="limit-tag">⚠ SoVI vulnerability uses BFS GEOSTAT demographics (6 indicators, PCA-based). For full IPCC risk: Risk = Hazard × Exposure × Vulnerability</span>
+      <span class="limit-tag">⚠ Adoption readiness is a structural proxy from building class, not individual owner
+        preferences</span>
+      <span class="limit-tag">⚠ Canopy radius of 100m (standard in urban ecology, e.g. Ziter et al. 2019)</span>
+    </div>
+  </div>
+
+  <script>
+    // ─────────────────────────────────────────
+    // State
+    // ─────────────────────────────────────────
+    let mode = 'rsi';
+    let darkMode = true;
+    let deckInstance = null; // unused; hotspots use overlay.setProps() directly
+    let summaryData = null;
+    let geojsonData = null;
+    let methOpen = false;
+    let _buildLayer = null;
+    let _hotspotLayer = null;
+    let _hotspotGlowLayers = [];
+    let _allLayers = [];
+
+    // ─────────────────────────────────────────
+    // Color scales
+    // ─────────────────────────────────────────
+    function rsiColor(v) {
+      // Yellow → Orange → Red
+      if (v < 0.33) { const t = v / 0.33; return [255, Math.round(255 - 100 * t), Math.round(204 - 204 * t), 210]; }
+      if (v < 0.66) { const t = (v - 0.33) / 0.33; return [255, Math.round(155 - 100 * t), 0, 210]; }
+      const t = (v - 0.66) / 0.34;
+      return [Math.round(255 - 50 * t), Math.round(55 + 20 * t), 0, 210];
+    }
+    function urgencyColor(v) {
+      // Black → Purple → Orange → Yellow (Inferno)
+      const stops = [[0, 0, 4], [64, 2, 86], [158, 37, 118], [213, 95, 78], [254, 201, 60], [252, 255, 164]];
+      const t = v * (stops.length - 1);
+      const i = Math.min(Math.floor(t), stops.length - 2);
+      const f = t - i;
+      return [
+        Math.round(stops[i][0] + f * (stops[i + 1][0] - stops[i][0])),
+        Math.round(stops[i][1] + f * (stops[i + 1][1] - stops[i][1])),
+        Math.round(stops[i][2] + f * (stops[i + 1][2] - stops[i][2])),
+        220
+      ];
+    }
+    function heatingColor(hs) {
+      if (hs >= 0.8) return [231, 76, 60, 220];
+      if (hs <= 0.1) return [46, 204, 113, 220];
+      return [88, 166, 255, 180];
+    }
+    function lstColor(v, min, max) {
+      const t = Math.max(0, Math.min(1, (v - min) / (max - min)));
+      return urgencyColor(t);
+    }
+
+    let lstMin = 23, lstMax = 46;
+
+    function ndviColor(v) {
+      // Brown → Yellow → Green
+      const t = Math.max(0, Math.min(1, (v + 0.1) / 0.8)); // NDVI range roughly -0.1 to 0.7
+      if (t < 0.33) return [165, 105, 50, 210];
+      if (t < 0.66) { const f = (t - 0.33) / 0.33; return [Math.round(165 + 90 * f), Math.round(105 + 150 * f), Math.round(50 - 20 * f), 210]; }
+      const f = (t - 0.66) / 0.34;
+      return [Math.round(255 - 220 * f), Math.round(255 - 55 * f), Math.round(30 + 70 * f), 210];
+    }
+    function treesColor(v, maxTrees) {
+      const t = Math.min(1, v / (maxTrees || 1));
+      // White → Blue → Dark Blue
+      return [Math.round(200 - 180 * t), Math.round(200 - 100 * t), Math.round(220 + 35 * t), 200];
+    }
+    function adoptionColor(v) {
+      // Red → Yellow → Green (same as traffic light)
+      if (v < 0.33) return [215, 48, 39, 210];
+      if (v < 0.66) { const f = (v - 0.33) / 0.33; return [Math.round(215 + 40 * f), Math.round(48 + 180 * f), Math.round(39 + 40 * f), 210]; }
+      const f = (v - 0.66) / 0.34;
+      return [Math.round(255 - 229 * f), Math.round(228 - 76 * f), Math.round(79 - 3 * f), 210];
+    }
+
+    function vulnerabilityColor(v) {
+      // Red-Yellow-Blue diverging palette: blue (low vuln) → yellow (mid) → red (high vuln)
+      // Clearly distinct from Priority (Inferno), UHI (Inferno), RSI (Yellow-Orange-Red)
+      const stops = [[33, 102, 178], [54, 135, 185], [104, 176, 195], [170, 210, 200], [230, 235, 175], [245, 195, 115], [230, 145, 50], [178, 85, 44]];
+      const t = v * (stops.length - 1);
+      const i = Math.min(Math.floor(t), stops.length - 2);
+      const f = t - i;
+      return [
+        Math.round(stops[i][0] + f * (stops[i + 1][0] - stops[i][0])),
+        Math.round(stops[i][1] + f * (stops[i + 1][1] - stops[i][1])),
+        Math.round(stops[i][2] + f * (stops[i + 1][2] - stops[i][2])),
+        220
+      ];
+    }
+
+    function uhimaxColor(v, min, max) {
+      // Blue → Cyan → Yellow → Red for temperature (intuitive, distinct from Priority/UHI Inferno)
+      const t = Math.max(0, Math.min(1, (v - min) / (max - min || 1)));
+      const stops = [[44, 62, 158], [57, 135, 195], [109, 195, 195], [200, 230, 130], [255, 180, 60], [230, 60, 40]];
+      const ti = t * (stops.length - 1);
+      const i = Math.min(Math.floor(ti), stops.length - 2);
+      const f = ti - i;
+      return [
+        Math.round(stops[i][0] + f * (stops[i + 1][0] - stops[i][0])),
+        Math.round(stops[i][1] + f * (stops[i + 1][1] - stops[i][1])),
+        Math.round(stops[i][2] + f * (stops[i + 1][2] - stops[i][2])),
+        220
+      ];
+    }
+
+    let maxTreeCount = 200;
+    let rsiQ1 = 0.27, rsiQ2 = 0.67, rsiQ3 = 0.75;
+    let urgT1, urgT2;
+    let uhimaxMin = 0, uhimaxMax = 10;
+
+    function getColor(props) {
+      if (!props) return [150, 150, 150, 100];
+      if (mode === 'rsi') return rsiColor(props.rsi || 0);
+      if (mode === 'urgency') return urgencyColor(props.urg || 0);
+      if (mode === 'vulnerability') return vulnerabilityColor(props.vulnerability_score || 0);
+      if (mode === 'heating') return heatingColor(props.hs || 0);
+      if (mode === 'uhimax') return uhimaxColor(props.uhimax_k || 0, uhimaxMin, uhimaxMax);
+      if (mode === 'ndvi') return ndviColor(props.ndvi || 0);
+      if (mode === 'trees') return treesColor(props.trees_100m || 0, maxTreeCount);
+      if (mode === 'adoption') return adoptionColor(props.adopt || 0.4);
+      return [150, 150, 150, 100];
+    }
+
+    // ─────────────────────────────────────────
+    // Hotspot computation and rendering
+    // ─────────────────────────────────────────
+    function computeHotspots() {
+      if (!geojsonData) return;
+
+      // Helper: extract centroid from GeoJSON polygon (WGS84)
+      function centroid(coords) {
+        if (!coords || !coords[0]) return [8.54, 47.38];
+        const ring = coords[0];
+        let x = 0, y = 0;
+        for (const p of ring) { x += p[0]; y += p[1]; }
+        return [x / ring.length, y / ring.length];
+      }
+
+      // Score each building: high heat + high pop + high vulnerability + low green
+      const maxPop = d3.max(geojsonData.features, f => f.properties.pop || 0) || 1;
+      const scored = geojsonData.features.map(f => {
+        const p = f.properties;
+        const heat = (p.uhimax || 0) / (uhimaxMax || 10);
+        const popNorm = (p.pop || 0) / maxPop;
+        const vuln = p.vulnerability_score || 0;
+        const green = p.green || 0;
+        const score = (heat + popNorm) / 2 * vuln * (1 - green);
+        const c = centroid(f.geometry?.coordinates);
+        return { egid: p.egid, score: score, props: p, coords: c };
+      });
+
+      // Sort by score descending, take top 50
+      scored.sort((a, b) => b.score - a.score);
+      const N_HOTSPOTS = 50;
+      hotspotBuildings = scored.slice(0, N_HOTSPOTS).map(h => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: h.coords },
+        properties: {
+          egid: h.props.egid,
+          score: h.score,
+          heat: Math.round((h.props.uhimax || 0) * 10) / 10,
+          pop: h.props.pop || 0,
+          vuln: Math.round((h.props.vulnerability_score || 0) * 100) / 100,
+          green: Math.round((h.props.green || 0) * 100) / 100,
+          green_deficit: Math.round((h.props.green_deficit || 0) * 100),
+          ndvi: h.props.ndvi || 0,
+          trees: h.props.trees_100m || 0,
+          heating: h.props.heating || 'Unknown',
+          period: h.props.period || 'Unknown',
+          cost: h.props.cost_mittelstandard || 0,
+        }
+      }));
+
+      console.log(`[Hotspots] Found ${hotspotBuildings.length} vulnerability hotspots`);
+      renderHotspots();
+    }
+
+    function renderHotspots() {
+      if (hotspotBuildings.length === 0 || !overlay) return;
+      if (!geojsonData) return;
+
+      // Layered glow: each building gets a multi-ring spotlight
+      // Outer halo (150m, very transparent)
+      const outerGlow = new deck.ScatterplotLayer({
+        id: 'hotspot-glow-outer',
+        data: hotspotBuildings,
+        getPosition: f => f.geometry.coordinates,
+        getFillColor: [239, 68, 68],
+        getRadius: 150,
+        opacity: 0.08,
+        pickable: false,
+      });
+      // Mid ring (80m, semi-transparent warm red)
+      const midRing = new deck.ScatterplotLayer({
+        id: 'hotspot-glow-mid',
+        data: hotspotBuildings,
+        getPosition: f => f.geometry.coordinates,
+        getFillColor: [249, 115, 22],
+        getRadius: 80,
+        opacity: 0.18,
+        pickable: false,
+      });
+      // Inner ring (40m, bright red-orange)
+      const innerRing = new deck.ScatterplotLayer({
+        id: 'hotspot-glow-inner',
+        data: hotspotBuildings,
+        getPosition: f => f.geometry.coordinates,
+        getFillColor: [251, 146, 60],
+        getRadius: 40,
+        opacity: 0.35,
+        pickable: false,
+      });
+      // Core dot (15m, solid red)
+      const core = new deck.ScatterplotLayer({
+        id: 'hotspot-core',
+        data: hotspotBuildings,
+        getPosition: f => f.geometry.coordinates,
+        getFillColor: [239, 68, 68],
+        getRadius: 15,
+        getStrokeColor: [255, 255, 255],
+        lineWidthMinPixels: 1.5,
+        opacity: 1.0,
+        pickable: true,
+        onClick: (info) => {
+          if (info.object) showHotspotTooltip(info);
+        },
+        onHover: (info) => {
+          document.getElementById('map').style.cursor = info.object ? 'pointer' : '';
+        }
+      });
+
+      _hotspotLayer = core;
+      _hotspotGlowLayers = [outerGlow, midRing, innerRing, core];
+      _allLayers = [_buildLayer, ..._hotspotGlowLayers].filter(Boolean);
+      overlay.setProps({ layers: _allLayers });
+    }
+
+    function showHotspotTooltip(info) {
+      const p = info.object.properties;
+      const tt = document.getElementById('tooltip');
+      tt.style.display = 'block';
+      tt.style.left = (info.x + 12) + 'px';
+      tt.style.top = (info.y - 12) + 'px';
+      tt.style.borderColor = '#ef4444';
+      tt.style.boxShadow = '0 8px 24px rgba(239, 68, 68, 0.3)';
+      document.getElementById('tt-title').innerHTML = `<span style="color:#ef4444">🔥 Hotspot #${hotspotBuildings.indexOf(info.object) + 1}</span>`;
+      document.getElementById('tt-body').innerHTML = `
+        <div class="tt-row"><span>Vulnerability Score</span><b>${Math.round(p.score * 1000) / 1000}</b></div>
+        <div class="tt-row"><span>UHI Air Temp</span><b>+${p.heat}°K above rural</b></div>
+        <div class="tt-row"><span>Pop. Density</span><b>${p.pop} p/cell</b></div>
+        <div class="tt-row"><span>SoVI Vulnerability</span><b>${Math.round(p.vuln * 100)}%</b></div>
+        <div class="tt-row"><span>Green Score</span><b>${Math.round(p.green * 100)}% (NDVI ${p.ndvi})</b></div>
+        <div class="tt-row"><span>Cooling Deficit</span><b>${p.green_deficit}%</b></div>
+        <div class="tt-row"><span>Trees 100m</span><b>${p.trees}</b></div>
+        <div class="tt-row"><span>Heating</span><b>${p.heating}</b></div>
+        <div class="tt-row"><span>Period</span><b>${p.period}</b></div>
+        <div class="tt-rsi">
+          <div class="tt-row"><span>Cost (Mittelstandard)</span><b>CHF ${p.cost}K</b></div>
+        </div>
+        <div style="margin-top:6px;font-size:.6rem;color:var(--muted)">
+          Score = ∛(Heat × Pop × Vuln) × (1 - Green)
+        </div>
+      `;
+    }
+
+    // ─────────────────────────────────────────
+    // Map + Deck
+    // ─────────────────────────────────────────
+    let map;
+    let overlay;
+
+    function initMap() {
+      console.log('[ClimateScale] Initializing map...');
+      const styleUrl = darkMode
+        ? 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
+        : 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
+
+      try {
+        map = new maplibregl.Map({
+          container: 'map',
+          style: styleUrl,
+          center: [8.538, 47.376],
+          zoom: 13,
+          pitch: 55,
+          bearing: -20,
+          antialias: true,
+        });
+        console.log('[ClimateScale] MapLibre map created');
+
+        overlay = new deck.MapboxOverlay({
+          interleaved: true,
+          layers: []
+        });
+        console.log('[ClimateScale] Deck overlay created');
+
+        map.addControl(overlay);
+
+        map.on('load', () => {
+          console.log('[ClimateScale] Map loaded, geojson ready:', !!geojsonData);
+          if (geojsonData) renderLayers();
+        });
+
+        map.on('error', (e) => {
+          console.error('[ClimateScale] Map error:', e);
+        });
+      } catch(err) {
+        console.error('[ClimateScale] Map init failed:', err);
+      }
+    }
+
+    function renderLayers() {
+      if (!overlay || !geojsonData) return;
+
+      const layer = new deck.GeoJsonLayer({
+        id: 'buildings',
+        data: geojsonData,
+        extruded: true,
+        getElevation: f => (f.properties?.height || 4),
+        getFillColor: f => getColor(f.properties),
+        getLineColor: darkMode ? [50, 50, 50, 80] : [200, 200, 200, 80],
+        lineWidthMinPixels: 0.5,
+        pickable: true,
+        autoHighlight: true,
+        highlightColor: [255, 255, 255, 60],
+        elevationScale: 1,
+        material: {
+          ambient: 0.35,
+          diffuse: 0.6,
+          shininess: 20,
+        },
+        onHover: handleHover,
+        onClick: handleHoverClick,
+        updateTriggers: { getFillColor: [mode, Date.now()] }
+      });
+
+      _buildLayer = layer;
+      _allLayers = [layer].filter(Boolean);
+      if (_hotspotLayer) _allLayers.push(_hotspotLayer);
+      overlay.setProps({ layers: _allLayers });
+    }
+
+    // ─────────────────────────────────────────
+    // Hover tooltip
+    // ─────────────────────────────────────────
+    let pinnedEgid = null; // click-to-pin state
+    function handleHover(info) {
+      const tt = document.getElementById('tooltip');
+      if (!info.object) { if (!pinnedEgid) { tt.style.display = 'none'; } return; }
+      const p = info.object.properties;
+      tt.style.display = 'block';
+      tt.style.left = (info.x + 12) + 'px';
+      tt.style.top = (info.y - 12) + 'px';
+
+      document.getElementById('tt-title').textContent = `Building ${p.egid || ''}`;
+      const safeNum = (v, d) => (v != null && !isNaN(v)) ? v : d;
+      const safePct = (v) => (v != null && !isNaN(v)) ? (v * 100).toFixed(0) + '%' : '—';
+      const isUnknown = p.heating_unknown || false;
+      const unkClass = isUnknown ? ' style="color:var(--warn);opacity:0.6"' : '';
+      const unkNote = isUnknown ? '<div class="tt-row" style="color:var(--warn);font-size:.65rem"><span>⚠ Heating unknown</span><span>RSI component scored as NaN — not 0</span></div>' : '';
+      document.getElementById('tt-body').innerHTML = `
+    <div class="tt-row"><span>Heating system</span><b${unkClass}>${p.heating || (isUnknown ? 'Unknown (NaN)' : '—')}</b></div>
+    <div class="tt-row"><span>Build period</span><b>${p.period || '—'}</b></div>
+    <div class="tt-row"><span>Height (eave)</span><b>${safeNum(p.height, '—')}m</b></div>
+    <div class="tt-row"><span>Storeys</span><b>${safeNum(p.storeys, '—')}</b></div>
+    <div class="tt-row"><span>Energy ref. area</span><b>${safeNum(p.area, '—')} m²</b></div>
+    <div class="tt-row"><span>UHI Air Temp</span><b>${safeNum(p.uhimax_k, '—')}°K above rural</b></div>
+    <div class="tt-row"><span>Pop. density</span><b>${safeNum(p.pop, '—')} persons/cell</b></div>
+    <div class="tt-row"><span>Green Score</span><b>${safePct(p.green)} (NDVI ${safeNum(p.ndvi, '—')})</b></div>
+    <div class="tt-row"><span>Trees within 100m</span><b>${safeNum(p.trees_100m, '—')}</b></div>
+    <div class="tt-row"><span>SoVI Vulnerability</span><b>${safePct(p.vulnerability_score)}</b></div>
+    <div class="tt-row"><span>Adoption readiness</span><b>${safePct(p.adopt)}</b></div>
+    <div class="tt-row"><span>Est. cost (Mindeststandard)</span><b>CHF ${p.cost_mindeststandard || '—'}K</b></div>
+    <div class="tt-row"><span>Est. cost (Mittelstandard)</span><b>CHF ${p.cost_mittelstandard || '—'}K</b></div>
+    <div class="tt-row"><span>Est. cost (Minergie)</span><b>CHF ${p.cost_minergie || '—'}K</b></div>
+    ${unkNote}
+    <div class="tt-rsi">
+      <div class="tt-row"><span>RSI Score</span><b${unkClass}>${isUnknown ? 'NaN (unknown heating)' : safePct(p.rsi)}</b></div>
+      <div class="tt-row"><span>Intervention Priority</span><b>${safePct(p.urg)}</b></div>
+      <div class="tt-bar" style="width:${((p.rsi || 0) * 100)}%"></div>
+    </div>
+  `;
+    }
+
+    function handleHoverClick(info) {
+      handleHover(info);
+      if (info.object) {
+        pinnedEgid = info.object.properties.egid;
+      } else {
+        pinnedEgid = null;
+        document.getElementById('tooltip').style.display = 'none';
+      }
+    }
+
+    // ─────────────────────────────────────────
+    // Mode switch
+    // ─────────────────────────────────────────
+    const allModes = ['rsi', 'urgency', 'vulnerability', 'heating', 'uhimax', 'ndvi', 'trees', 'adoption', 'hotspots'];
+    let hotspotBuildings = []; // Top 50 buildings by combined vulnerability
+    function setMode(m) {
+      mode = m;
+      allModes.forEach(id => {
+        document.getElementById('btn-' + id)?.classList.toggle('active', id === m);
+        const nb = document.querySelector(`.navbar .nav-btn[onclick="setMode('${id}')"]`);
+        if (nb) nb.classList.toggle('active', id === m);
+      });
+      updateLegend();
+      renderLayers();
+
+      // If hotspots mode, compute and show top 50
+      if (m === 'hotspots' && geojsonData) {
+        _hotspotLayer = null;
+        _hotspotGlowLayers = [];
+        computeHotspots();
+      } else {
+        // Clear hotspots and restore buildings-only view
+        _hotspotLayer = null;
+        _hotspotGlowLayers = [];
+        overlay.setProps({ layers: [_buildLayer].filter(Boolean) });
+        hotspotBuildings = [];
+      }
+    }
+
+    function updateLegend() {
+      const t = document.getElementById('legendTitle');
+      const g = document.getElementById('legendGrad');
+      const l = document.getElementById('legendL');
+      const r = document.getElementById('legendR');
+      // Clean up quantile marker
+      const oldMid = document.getElementById('legendMid');
+      if (oldMid) oldMid.remove();
+      if (mode === 'rsi') {
+        t.textContent = 'Retrofit Suitability Index (RSI)';
+        g.style.background = 'linear-gradient(to right,#ffffcc,#feb24c,#f03b20)';
+        l.textContent = `<${rsiQ1.toFixed(2)} — Low`;
+        document.getElementById('legendR').textContent = `>${rsiQ3.toFixed(2)} — High`;
+        const midEl = document.createElement('span');
+        midEl.id = 'legendMid';
+        midEl.style.cssText = 'color:var(--muted);font-size:.6rem;text-align:center;flex:1;white-space:nowrap';
+        midEl.textContent = `Q2=${rsiQ2.toFixed(2)}`;
+        g.parentElement.appendChild(midEl);
+      } else if (mode === 'urgency') {
+        t.textContent = 'Intervention Priority (∛Heat × Pop × CoolingDeficit)';
+        g.style.background = 'linear-gradient(to right,#000004,#721f81,#f1605d,#fcfdbf)';
+        l.textContent = `<${(urgT1 || 0.33).toFixed(2)}`;
+        r.textContent = `>${(urgT2 || 0.67).toFixed(2)} — Critical`;
+        const midEl2 = document.createElement('span');
+        midEl2.id = 'legendMid';
+        midEl2.style.cssText = 'color:var(--muted);font-size:.6rem;text-align:center;flex:1;white-space:nowrap';
+        midEl2.textContent = `T1=${((urgT1 || 0.33) * 100).toFixed(0)}%`;
+        g.parentElement.appendChild(midEl2);
+      } else if (mode === 'vulnerability') {
+        t.textContent = 'SoVI Socio-Economic Vulnerability (Weber et al. PCA)';
+        g.style.background = 'linear-gradient(to right,#2166b2,#68b0c3,#f0e68e,#e69132,#b2552c)';
+        l.textContent = '#2166b2 — Low'; r.textContent = '#b2552c — High';
+      } else if (mode === 'heating') {
+        t.textContent = 'Heating Source';
+        g.style.background = 'linear-gradient(to right,#2ecc71,#58a6ff,#e74c3c)';
+        l.textContent = 'Clean'; r.textContent = 'Fossil';
+      } else if (mode === 'uhimax') {
+        t.textContent = 'UHI Air Temperature (modelled, Theeuwes eq. + MeteoSwiss, ΔK above rural)';
+        g.style.background = 'linear-gradient(to right,#2c3e9a,#3987c3,#6dc3c3,#c8e682,#ffb43c,#e63c28)';
+        l.textContent = `${(uhimaxMin || 0).toFixed(1)}K — Cool`; r.textContent = `+${(uhimaxMax || 0).toFixed(1)}K — Hot`;
+      } else if (mode === 'ndvi') {
+        t.textContent = 'NDVI — Satellite Vegetation (Sentinel-2, 10m)';
+        g.style.background = 'linear-gradient(to right,#a56932,#ffff30,#228B22)';
+        l.textContent = '-0.1 — Bare/built'; r.textContent = '0.7 — Dense vegetation';
+      } else if (mode === 'trees') {
+        t.textContent = 'Tree Count within 100m (Bauminventar)';
+        g.style.background = 'linear-gradient(to right,#c8c8dc,#4040e0,#1a1a80)';
+        l.textContent = '0 trees'; r.textContent = maxTreeCount + '+ trees';
+      } else if (mode === 'adoption') {
+        t.textContent = 'Adoption Readiness (ownership structure proxy)';
+        g.style.background = 'linear-gradient(to right,#d73027,#fee08b,#1a9850)';
+        l.textContent = '0 — Barriers (rental/split incentive)'; r.textContent = '1 — Ready (owner-occupied)';
+      } else if (mode === 'hotspots') {
+        t.textContent = '🔥 Top 50 Vulnerability Hotspots (heat × pop × vuln × cooling deficit)';
+        g.style.background = 'linear-gradient(to right,#ef4444,#f97316,#fbbf24)';
+        l.textContent = 'Lowest risk'; r.textContent = 'Critical';
+      }
+    }
+
+    // ─────────────────────────────────────────
+    // Theme toggle
+    // ─────────────────────────────────────────
+    function toggleTheme() {
+      darkMode = !darkMode;
+      document.body.classList.toggle('light', !darkMode);
+      const style = darkMode
+        ? 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
+        : 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
+      map.setStyle(style);
+      map.once('styledata', () => renderLayers());
+    }
+
+    // ─────────────────────────────────────────
+    // Methodology panel
+    // ─────────────────────────────────────────
+    function toggleMethodology() {
+      methOpen = !methOpen;
+      document.getElementById('methPanel').classList.toggle('open', methOpen);
+      document.getElementById('methBtn').classList.toggle('active', methOpen);
+    }
+
+    // ─────────────────────────────────────────
+    // RSI weight sliders (live recalc)
+    // ─────────────────────────────────────────
+    function updateWeights() {
+      const wH = +document.getElementById('wH').value;
+      const wA = +document.getElementById('wA').value;
+      const wS = +document.getElementById('wS').value;
+      const wC = +document.getElementById('wC').value;
+      const total = wH + wA + wS + wC || 1;
+      document.getElementById('wHVal').textContent = Math.round(wH / total * 100) + '%';
+      document.getElementById('wAVal').textContent = Math.round(wA / total * 100) + '%';
+      document.getElementById('wSVal').textContent = Math.round(wS / total * 100) + '%';
+      document.getElementById('wCVal').textContent = Math.round(wC / total * 100) + '%';
+
+      if (!geojsonData) return;
+
+      // Recalc RSI live using component scores from pipeline
+      const wHn = wH / total, wAn = wA / total, wSn = wS / total, wCn = wC / total;
+      geojsonData.features.forEach(f => {
+        const p = f.properties;
+        const newRsi = wHn * (p.hs || 0) + wAn * (p.age_s ?? 0.5) + wSn * (p.scale_s ?? 0.5) + wCn * (p.cost_s ?? 0.5);
+        p.rsi = Math.max(0, Math.min(1, newRsi));
+      });
+      if (mode === 'rsi') renderLayers();
+
+      // Recompute histogram from live RSI values
+      recomputeHistogram();
+    }
+
+    function recomputeHistogram() {
+      if (!geojsonData) return;
+      const rsiVals = geojsonData.features.map(f => f.properties.rsi || 0);
+      const bins = d3.bin().domain([0, 1]).thresholds(10)(rsiVals);
+      const hist = bins.map(b => ({
+        bin: b.x0.toFixed(1) + '-' + b.x1.toFixed(1),
+        count: b.length
+      }));
+      drawHistogram(hist);
+    }
+
+    // ─────────────────────────────────────────
+    // RSI Histogram
+    // ─────────────────────────────────────────
+    function drawHistogram(hist) {
+      const svg = d3.select('#rsiHistogram');
+      svg.selectAll('*').remove();
+      const w = 242, h = 80, m = { t: 5, r: 0, b: 20, l: 30 };
+      const x = d3.scaleBand().domain(hist.map(d => d.bin)).range([m.l, w - m.r]).padding(0.1);
+      const y = d3.scaleLinear().domain([0, d3.max(hist, d => d.count)]).range([h - m.b, m.t]);
+      svg.selectAll('rect').data(hist).enter().append('rect')
+        .attr('x', d => x(d.bin)).attr('width', x.bandwidth())
+        .attr('y', d => y(d.count)).attr('height', d => h - m.b - y(d.count))
+        .attr('fill', (_, i) => {
+          // Match rsiColor: Yellow → Orange → Red
+          const t = i / (hist.length - 1 || 1);
+          const r = 255, g = Math.round(255 - 200 * t), b = Math.round(204 - 172 * t);
+          return `rgb(${r},${g},${b})`;
+        })
+        .attr('rx', 2);
+      svg.append('g').attr('transform', `translate(${m.l},0)`)
+        .call(d3.axisLeft(y).ticks(3).tickFormat(d3.format('.2s')))
+        .selectAll('text').attr('fill', '#8b949e').style('font-size', '9px');
+      svg.selectAll('.domain,.tick line').attr('stroke', '#30363d');
+    }
+
+    // ─────────────────────────────────────────
+    // Heating bars
+    // ─────────────────────────────────────────
+    function drawHeatingBars(hb) {
+      const entries = Object.entries(hb).sort((a, b) => b[1] - a[1]).slice(0, 7);
+      const max = Math.max(...entries.map(e => e[1]));
+      const fossil = new Set(['Gas', 'Heizöl']);
+      const clean = new Set(['Fernwärme', 'Erdwärmesonde', 'Luft', 'Seewasser', 'Fernwärme (Niedertemperatur)']);
+      const html = entries.map(([src, cnt]) => {
+        const cls = fossil.has(src) ? 'fossil-fill' : clean.has(src) ? 'clean-fill' : 'neutral-fill';
+        const pct = (cnt / max * 100).toFixed(1);
+        return `<div class="bar-row">
+      <span class="bar-label">${src}</span>
+      <div class="bar-track"><div class="bar-fill ${cls}" style="width:${pct}%"></div></div>
+      <span class="bar-num">${cnt.toLocaleString()}</span>
+    </div>`;
+      }).join('');
+      document.getElementById('heatingBars').innerHTML = html;
+    }
+
+    // ─────────────────────────────────────────
+    // Load data & init
+    // ─────────────────────────────────────────
+    // ─────────────────────────────────────────
+    // Pipeline Diagram (SVG)
+    // ─────────────────────────────────────────
+    function drawPipelineDiagram() {
+      const svg = d3.select('#pipelineDiagram');
+      svg.selectAll('*').remove();
+
+      const W = 320, nodeH = 22, nodeR = 4, gap = 6;
+      const col1X = 0, col1W = 120;   // data sources
+      const col2X = 145, col2W = 70;  // intermediate scores
+      const col3X = 240, col3W = 78;  // final outputs
+
+      // Color palette
+      const srcFill = '#1e3a5f', srcStroke = '#3b82f6';
+      const midFill = '#3b2f0a', midStroke = '#f59e0b';
+      const outFill = '#1a3d2e', outStroke = '#10b981';
+      const textCol = '#c9d1d9', arrowCol = '#4b5563';
+
+      // Data sources (col 1)
+      const sources = [
+        { label: 'GWR Registry', group: 'rsi' },
+        { label: 'Heating Systems', group: 'rsi' },
+        { label: 'Gebäudeprogramm Cost', group: 'cost' },
+        { label: 'UHI Air Temp', group: 'priority' },
+        { label: 'Pop. Density', group: 'priority' },
+        { label: 'NDVI Sentinel-2', group: 'green' },
+        { label: 'Tree Registry', group: 'green' },
+        { label: 'Building Class', group: 'adopt' },
+        { label: 'BFS GEOSTAT', group: 'vuln' },
+      ];
+
+      // Intermediate scores (col 2)
+      const midNodes = [
+        { label: 'Heating', y: 0, src: [0, 1] },
+        { label: 'Age', y: 0, src: [0] },
+        { label: 'Scale', y: 0, src: [0] },
+        { label: 'Cost', y: 0, src: [2] },
+        { label: 'Heat Haz.', y: 0, src: [3] },
+        { label: 'Cool Def.', y: 0, src: [5, 6] },
+        { label: 'SoVI', y: 0, src: [8] },
+      ];
+
+      // Final outputs (col 3)
+      const outputs = [
+        { label: 'RSI', y: 0, mid: [0, 1, 2, 3] },
+        { label: 'Priority', y: 0, mid: [4, 5] },
+        { label: 'Green Score', y: 0, mid: [5] },
+        { label: 'Adoption', y: 0, mid: [] },
+        { label: 'SoVI', y: 0, mid: [6] },
+      ];
+
+      // Position sources
+      const srcStartY = 8;
+      sources.forEach((s, i) => { s.y = srcStartY + i * (nodeH + gap); });
+
+      // Position mid nodes — spread to align with source groups
+      midNodes[0].y = srcStartY + 0.5 * (nodeH + gap);
+      midNodes[1].y = srcStartY + 1.5 * (nodeH + gap) - 4;
+      midNodes[2].y = srcStartY + 2 * (nodeH + gap);
+      midNodes[3].y = srcStartY + 2.5 * (nodeH + gap) + 4;
+      midNodes[4].y = srcStartY + 4 * (nodeH + gap);
+      midNodes[5].y = srcStartY + 5.5 * (nodeH + gap);
+
+      // Position outputs
+      outputs[0].y = srcStartY + 1.5 * (nodeH + gap);
+      outputs[1].y = srcStartY + 4.5 * (nodeH + gap);
+      outputs[2].y = srcStartY + 5.5 * (nodeH + gap);
+      outputs[3].y = srcStartY + 7 * (nodeH + gap);
+      outputs[4].y = srcStartY + 8.5 * (nodeH + gap);
+
+      // Arrows: source → mid
+      const arrows = svg.append('g');
+      midNodes.forEach((m) => {
+        m.src.forEach(si => {
+          const s = sources[si];
+          arrows.append('line')
+            .attr('x1', col1X + col1W).attr('y1', s.y + nodeH / 2)
+            .attr('x2', col2X).attr('y2', m.y + nodeH / 2)
+            .attr('stroke', arrowCol).attr('stroke-width', 1).attr('opacity', 0.6);
+        });
+      });
+
+      // Arrows: mid → output
+      outputs.forEach((o) => {
+        o.mid.forEach(mi => {
+          const m = midNodes[mi];
+          arrows.append('line')
+            .attr('x1', col2X + col2W).attr('y1', m.y + nodeH / 2)
+            .attr('x2', col3X).attr('y2', o.y + nodeH / 2)
+            .attr('stroke', arrowCol).attr('stroke-width', 1).attr('opacity', 0.6);
+        });
+      });
+
+      // Special: Building Class → Adoption (direct, no mid node)
+      arrows.append('line')
+        .attr('x1', col1X + col1W).attr('y1', sources[7].y + nodeH / 2)
+        .attr('x2', col3X).attr('y2', outputs[3].y + nodeH / 2)
+        .attr('stroke', arrowCol).attr('stroke-width', 1).attr('opacity', 0.6);
+
+      // Draw source boxes
+      const srcG = svg.append('g');
+      sources.forEach(s => {
+        srcG.append('rect')
+          .attr('x', col1X).attr('y', s.y)
+          .attr('width', col1W).attr('height', nodeH)
+          .attr('rx', nodeR).attr('fill', srcFill).attr('stroke', srcStroke).attr('stroke-width', 0.8);
+        srcG.append('text')
+          .attr('x', col1X + col1W / 2).attr('y', s.y + nodeH / 2 + 1)
+          .attr('text-anchor', 'middle').attr('dominant-baseline', 'middle')
+          .attr('fill', textCol).attr('font-size', '8px').text(s.label);
+      });
+
+      // Draw mid boxes
+      const midG = svg.append('g');
+      midNodes.forEach(m => {
+        midG.append('rect')
+          .attr('x', col2X).attr('y', m.y)
+          .attr('width', col2W).attr('height', nodeH)
+          .attr('rx', nodeR).attr('fill', midFill).attr('stroke', midStroke).attr('stroke-width', 0.8);
+        midG.append('text')
+          .attr('x', col2X + col2W / 2).attr('y', m.y + nodeH / 2 + 1)
+          .attr('text-anchor', 'middle').attr('dominant-baseline', 'middle')
+          .attr('fill', textCol).attr('font-size', '7.5px').attr('font-weight', '500').text(m.label);
+      });
+
+      // Draw output boxes
+      const outG = svg.append('g');
+      outputs.forEach(o => {
+        outG.append('rect')
+          .attr('x', col3X).attr('y', o.y)
+          .attr('width', col3W).attr('height', nodeH)
+          .attr('rx', nodeR).attr('fill', outFill).attr('stroke', outStroke).attr('stroke-width', 1);
+        outG.append('text')
+          .attr('x', col3X + col3W / 2).attr('y', o.y + nodeH / 2 + 1)
+          .attr('text-anchor', 'middle').attr('dominant-baseline', 'middle')
+          .attr('fill', textCol).attr('font-size', '8px').attr('font-weight', '600').text(o.label);
+      });
+
+      // Column headers
+      svg.append('text').attr('x', col1X + col1W / 2).attr('y', 4)
+        .attr('text-anchor', 'middle').attr('fill', '#8b949e').attr('font-size', '7px').text('DATA SOURCES');
+      svg.append('text').attr('x', col2X + col2W / 2).attr('y', 4)
+        .attr('text-anchor', 'middle').attr('fill', '#8b949e').attr('font-size', '7px').text('COMPONENTS');
+      svg.append('text').attr('x', col3X + col3W / 2).attr('y', 4)
+        .attr('text-anchor', 'middle').attr('fill', '#8b949e').attr('font-size', '7px').text('INDICES');
+    }
+
+    async function init() {
+      console.log('[ClimateScale] Starting init...');
+      let dataReady = false;
+      const banner = document.getElementById('dataBanner');
+      const bannerText = document.getElementById('bannerText');
+
+      function showBanner(msg) {
+        bannerText.innerHTML = msg || bannerText.innerHTML;
+        banner.style.display = 'block';
+      }
+      function hideBanner() {
+        banner.style.display = 'none';
+      }
+
+      try {
+      // Load summary JSON (fast)
+      const summary = await fetch('./climate_assessment.json').then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      });
+      summaryData = summary;
+      dataReady = true;
+      hideBanner();
+      console.log('[ClimateScale] Summary loaded:', summary.global_stats.total_buildings, 'buildings');
+      const gs = summary.global_stats;
+
+      document.getElementById('kpi-total').textContent = gs.total_buildings.toLocaleString();
+      document.getElementById('kpi-fossil').textContent = gs.fossil_pct + '%';
+      const uhimaxVal = gs.mean_uhimax_k;
+      document.getElementById('kpi-lst').textContent = '+' + (uhimaxVal != null ? uhimaxVal.toFixed(1) : '—') + 'K';
+      // SoVI vulnerability KPI
+      const kpiVulnEl = document.getElementById('kpi-vuln');
+      if (kpiVulnEl) {
+        kpiVulnEl.textContent = gs.mean_vulnerability != null ? Math.round(gs.mean_vulnerability * 100) + '%' : '—';
+      }
+      const greenScore = gs.mean_green_score != null ? Math.round(gs.mean_green_score * 100) + '%' : '—';
+      const ndviVal = gs.mean_ndvi != null ? gs.mean_ndvi.toFixed(2) : '—';
+      document.getElementById('kpi-green').textContent = greenScore + ' / ' + ndviVal;
+      const popEl = document.getElementById('kpi-pop');
+      if (popEl) popEl.textContent = (gs.mean_pop_density != null ? gs.mean_pop_density.toFixed(0) : '—') + ' p/cell';
+      const adoptEl = document.getElementById('kpi-adopt');
+      if (adoptEl) adoptEl.textContent = (gs.mean_adoption_readiness != null ? Math.round(gs.mean_adoption_readiness * 100) + '%' : '—');
+      const cleanEl = document.getElementById('kpi-clean');
+      if (cleanEl) {
+        cleanEl.textContent = (gs.fossil_pct != null ? Math.round(100 - gs.fossil_pct) : 100) + '%';
+      }
+      // Cost ranges chart
+      const costEl = document.getElementById('costRanges');
+      if (costEl && gs.cost_mittelstandard_median_k != null) {
+        const med = gs.cost_mittelstandard_median_k;
+        const low = gs.cost_mindeststandard_median_k;
+        const high = gs.cost_minergie_median_k;
+        costEl.innerHTML = `
+          <div class="bar-row"><span class="bar-label">Mindeststandard (×0.5)</span><div class="bar-track"><div class="bar-fill clean-fill" style="width:${Math.round((low/med)*100)}%"></div></div><span class="bar-num">CHF ${low}K</span></div>
+          <div class="bar-row"><span class="bar-label">Mittelstandard (×1.0)</span><div class="bar-track"><div class="bar-fill neutral-fill" style="width:100%"></div></div><span class="bar-num">CHF ${med}K</span></div>
+          <div class="bar-row"><span class="bar-label">Minergie (×2.5)</span><div class="bar-track"><div class="bar-fill fossil-fill" style="width:${Math.round((high/med)*100)}%"></div></div><span class="bar-num">CHF ${high}K</span></div>
+        `;
+      }
+      drawHistogram(summary.rsi_histogram);
+      drawHeatingBars(summary.heating_breakdown);
+
+      // Init map
+      initMap();
+
+      // Load 3D GeoJSON (larger, async)
+      console.log('[ClimateScale] Fetching 3D GeoJSON...');
+      fetch('./buildings_3d.geojson')
+        .then(r => r.json())
+        .then(gj => {
+          console.log('[ClimateScale] GeoJSON loaded:', gj.features.length, 'features');
+          geojsonData = gj;
+          hideBanner();
+          dataReady = true;
+
+          // Compute UHI air temp range
+          const uhimaxVals = gj.features.map(f => f.properties.uhimax_k).filter(v => v != null && !isNaN(v));
+          if (uhimaxVals.length > 0) {
+            uhimaxMin = d3.quantile(uhimaxVals.sort(d3.ascending), 0.02) || 0;
+            uhimaxMax = d3.quantile(uhimaxVals, 0.98) || 10;
+          }
+          // Compute RSI quantiles for legend labels
+          const rsiVals = gj.features.map(f => f.properties.rsi).filter(v => v != null && !isNaN(v));
+          if (rsiVals.length > 0) {
+            const sorted = rsiVals.sort(d3.ascending);
+            rsiQ1 = d3.quantile(sorted, 0.25) || 0.24;
+            rsiQ2 = d3.quantile(sorted, 0.50) || 0.50;
+            rsiQ3 = d3.quantile(sorted, 0.75) || 0.75;
+          }
+          // Compute urgency terciles for legend labels
+          const urgVals = gj.features.map(f => f.properties.urg).filter(v => v != null && !isNaN(v));
+          if (urgVals.length > 0) {
+            const sorted = urgVals.sort(d3.ascending);
+            urgT1 = d3.quantile(sorted, 0.33) || 0.33;
+            urgT2 = d3.quantile(sorted, 0.67) || 0.67;
+          }
+
+          // Compute tree count range for legend
+          const treeCounts = gj.features.map(f => f.properties.trees_100m || 0);
+          maxTreeCount = d3.quantile(treeCounts.sort(d3.ascending), 0.98) || 200;
+
+          renderLayers();
+          console.log('[ClimateScale] Layers rendered');
+
+          // Compute hotspots for the hotspots view mode
+          if (mode === 'hotspots') computeHotspots();
+        })
+        .catch(err => {
+          console.error('[ClimateScale] GeoJSON load failed:', err);
+          showBanner('⚠ <code>buildings_3d.geojson</code> not found. Run the pipeline and copy outputs to <code style="background:rgba(255,255,255,.1);padding:2px 6px;border-radius:3px;">dashboard/public/</code>.');
+        });
+
+      updateLegend();
+      drawPipelineDiagram();
+      } catch(err) {
+        console.error('[ClimateScale] Init failed:', err);
+      }
+    }
+
+    init();
+  </script>
+</body>
+
+</html>

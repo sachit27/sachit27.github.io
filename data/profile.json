@@ -1,0 +1,193 @@
+{
+  "name": "Dr. Sachit Mahajan",
+  "title": "Senior Scientist & Lecturer",
+  "affiliation": {
+    "group": "Computational Social Science (COSS)",
+    "department": "Department of Humanities, Social and Political Sciences (D-GESS)",
+    "institution": "ETH Zurich",
+    "city": "Zurich",
+    "country": "Switzerland",
+    "address": "Stampfenbachstrasse 48, 8092 Z\u00fcrich, Switzerland"
+  },
+  "avatar": "https://avatars.githubusercontent.com/u/20027571?v=4",
+  "links": {
+    "github": "https://github.com/sachit27",
+    "googleScholar": "https://scholar.google.com/citations?user=gEo6-fMAAAAJ&hl=en",
+    "orcid": "https://orcid.org/0000-0001-9558-8895",
+    "email": "sachit.mahajan@gess.ethz.ch",
+    "linkedin": "https://www.linkedin.com/in/sachit-mahajan-9052b745/",
+    "ethzProfile": "https://coss.ethz.ch"
+  },
+  "research_focus": [
+    {
+      "title": "Urban Resilience & Nature-Based Solutions (NBS)",
+      "description": "High-resolution spatial modeling, remote sensing, and decision support tools for climate adaptation, urban greenness equity (greenR), and exploring adaptive pathways under climate uncertainty (Adaptive Multifutures Framework)."
+    },
+    {
+      "title": "Environmental Sensing & Spatio-Temporal Modeling",
+      "description": "Designing distributed IoT sensor networks, trust-based dynamic calibration algorithms, anomaly detection pipelines (ADF), and crowd-sourced environmental analytics (VAYU, exploreR, AirBox, UpStream)."
+    },
+    {
+      "title": "AI for Environment, Citizen Feedback & Moderation",
+      "description": "Developing participatory AI accountability tools (CitizenVoice) to analyze, summarize, and moderate citizen input in public consultations, safeguarding minority viewpoints and mitigating algorithmic bias."
+    },
+    {
+      "title": "Responsible Technology Design & Value-Sensitive Design (VSD)",
+      "description": "Frameworks for ethical smart cities, participatory resilience, digital democracy, and agent-based modeling of collective intelligence and socio-technical transitions."
+    }
+  ],
+  "grants": [
+    {
+      "title": "Contours of Future Democratic Society",
+      "role": "Co-Principal Investigator (ETH Zurich)",
+      "funder": "Gerda Henkel Stiftung",
+      "amount": "\u20ac227,000",
+      "period": "2026 \u2013 2028"
+    },
+    {
+      "title": "UpStream: Participatory Water Quality Governance",
+      "role": "Co-Investigator / Co-PI",
+      "funder": "ESRC UK & MOST Taiwan",
+      "amount": "\u00a350,000",
+      "period": "2021 \u2013 2023"
+    },
+    {
+      "title": "CArE-Cities: Clean Air Engineering for Cities",
+      "role": "Grant Writing & Core Research Team",
+      "funder": "Research England",
+      "amount": "\u00a3135,000",
+      "period": "2019 \u2013 2020"
+    }
+  ],
+  "appointments": [
+    {
+      "period": "Jan 2024 \u2013 Present",
+      "role": "Senior Scientist & Lecturer",
+      "organization": "ETH Zurich",
+      "department": "Computational Social Science (COSS), D-GESS",
+      "description": "Leading research on urban resilience, spatial modeling, and participatory AI governance. Developing open-source tools (greenR, CitizenVoice) and co-managing an ERC Advanced Grant on participatory governance and digital democracy."
+    },
+    {
+      "period": "Oct 2020 \u2013 Dec 2023",
+      "role": "Postdoctoral Researcher & Lecturer",
+      "organization": "ETH Zurich",
+      "department": "Computational Social Science (COSS), D-GESS",
+      "description": "Conducted research on ERC Advanced Grant CoCi (Co-Evolving City Life). Developed Routify (multi-criteria environmental routing) and served as Co-Investigator on ESRC/MOST UpStream project."
+    },
+    {
+      "period": "Jun 2019 \u2013 Sep 2020",
+      "role": "Postdoctoral Research Associate",
+      "organization": "University of Cambridge",
+      "department": "Department of Sociology",
+      "description": "ERC Citizen Sense / AirKit project with Prof. Jennifer Gabrys. Co-developed and deployed community-driven air quality sensing toolkits across European and UK deployments."
+    },
+    {
+      "period": "Oct 2018 \u2013 May 2019",
+      "role": "GCARE Research Fellow",
+      "organization": "University of Surrey",
+      "department": "Global Centre for Clean Air Research (GCARE)",
+      "description": "EU Horizon 2020 iSCAPE project. Led co-creation studies and citizen-science air pollution monitoring campaigns across European cities."
+    },
+    {
+      "period": "Sep 2015 \u2013 Sep 2018",
+      "role": "PhD Researcher",
+      "organization": "Academia Sinica",
+      "department": "Institute of Information Science, Taiwan",
+      "description": "Researched participatory sensing, sensor calibration, and anomaly detection algorithms for the AirBox PM2.5 sensor network under Prof. Ling-Jyh Chen."
+    }
+  ],
+  "education": [
+    {
+      "degree": "Ph.D. in Social Networks and Human-Centered Computing",
+      "institution": "Academia Sinica & National Chengchi University (Joint Program)",
+      "period": "Sep 2015 \u2013 May 2019",
+      "thesis": "Internet of Environmental Things: A Human-Centered Approach",
+      "honors": "TIGP Full Fellowship, Best Presenter Award (ACM MobiSys 2018), Best Paper Award (IEEE TAAI 2018)"
+    },
+    {
+      "degree": "M.Sc. in Communication Engineering (Merit)",
+      "institution": "University of Manchester, United Kingdom",
+      "period": "Sep 2012 \u2013 Dec 2013"
+    },
+    {
+      "degree": "B.Tech. in Electronics and Communication Engineering (Distinction)",
+      "institution": "Punjab Technical University, India",
+      "period": "Aug 2008 \u2013 Jun 2012"
+    }
+  ],
+  "awards": [
+    {
+      "year": "2025",
+      "title": "Prix Carto (Educational Category)",
+      "organization": "Swiss Society of Cartography",
+      "description": "Awarded for the open-source greenR urban greenness framework"
+    },
+    {
+      "year": "2018",
+      "title": "Best Presenter Award",
+      "organization": "ACM MobiSys PhD Forum, Munich, Germany"
+    },
+    {
+      "year": "2018",
+      "title": "Best Paper Award",
+      "organization": "IEEE Conference on Technologies and Applications of Artificial Intelligence (TAAI)"
+    },
+    {
+      "year": "2017",
+      "title": "Best Poster Award",
+      "organization": "SNHCC Program, Academia Sinica"
+    },
+    {
+      "year": "2015 \u2013 2018",
+      "title": "TIGP Ph.D. Fellowship",
+      "organization": "Academia Sinica, Taiwan"
+    }
+  ],
+  "teaching": [
+    {
+      "course": "Complexity and Global System Science",
+      "institution": "ETH Zurich",
+      "role": "Lecturer"
+    },
+    {
+      "course": "Data Science in Techno-Socio-Economic Systems",
+      "institution": "ETH Zurich",
+      "role": "Lecturer"
+    },
+    {
+      "course": "Participatory Resilience Hackathon",
+      "institution": "ETH Zurich",
+      "role": "Course Creator & Instructor (Block Course)"
+    },
+    {
+      "course": "From Traffic Modelling to Smart Cities",
+      "institution": "ETH Zurich",
+      "role": "Lecturer"
+    },
+    {
+      "course": "Digital Society: Ethical, Societal and Economic Challenges",
+      "institution": "ETH Zurich",
+      "role": "Lecturer"
+    },
+    {
+      "course": "Citizen Participation in Sustainable Health",
+      "institution": "VU Amsterdam",
+      "role": "Guest Lecturer"
+    }
+  ],
+  "service": [
+    {
+      "category": "Editorial Boards",
+      "details": "SN Social Science (2022\u2013Present), Humanities and Social Sciences Communications (2023\u2013Present)"
+    },
+    {
+      "category": "Technical Program Committees",
+      "details": "IEEE GLOBECOM (2019, 2020, 2024), IEEE Sensors (2020), IEEE ICC (2020, 2021, 2022), RecSys Workshops"
+    },
+    {
+      "category": "Peer Reviewer",
+      "details": "IEEE IoT Journal, IEEE Access, Sensors, Big Data and Society, Environmental Science and Pollution Research, Journal of Cleaner Production, IEEE Transactions on Industrial Informatics, Cities, Nature Scientific Reports, Sustainable Cities and Society"
+    }
+  ],
+  "concurrent_affiliations": []
+}
