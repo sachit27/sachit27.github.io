@@ -32,15 +32,16 @@
   {
     "title": "Co-Creation Provenance Lab",
     "category": "AI for Environment & Citizen Governance",
-    "description": "An open-source platform tracing the provenance of citizen ideas and inputs in AI-moderated public consultations, ensuring transparency, voice preservation, and representational equity.",
+    "description": "An open-source visual analytics application for inspecting execution provenance, source-to-summary semantic associations, and model-coded evidence-review flags in AI-mediated consultation workflows.",
     "tags": [
-      "Python",
+      "TypeScript",
+      "React",
       "LLMs",
       "AI Accountability",
-      "Citizen Feedback",
-      "Moderation"
+      "Citizen Feedback"
     ],
-    "github": "https://github.com/sachit27/co-creation-provenance-lab"
+    "github": "https://github.com/sachit27/co-creation-provenance-lab",
+    "demo": "./apps/provenance-lab/"
   },
   {
     "title": "VAYU \u2014 Sensor Analytics & Statistical Processing Software",
